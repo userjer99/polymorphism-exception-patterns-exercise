@@ -110,9 +110,11 @@ public class Main {
                 }
                 if (!valid) {
                     System.out.println("Invalid parcel type choice! Please enter 1, 2, or 3.");
+                    System.out.println();
                 }
             } catch (NumberFormatException e) {
                 System.out.println("Invalid input! Please enter a valid number (1-3).");
+                System.out.println();
             }
         }
         return choice;
