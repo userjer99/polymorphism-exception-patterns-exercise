@@ -77,111 +77,170 @@ public class Main {
     // =========================================================================
     private static void handleAddParcel() {
         System.out.println("--- Add New Parcel ---");
-        System.out.println("Select Parcel Type:");
-        System.out.println(" 1. Document");
-        System.out.println(" 2. Box");
-        System.out.println(" 3. Fragile");
-
-        int typeChoice = parseParcelTypeChoice(promptString("Enter type choice (1-3): "));
-        if (typeChoice == -1) {
-            return;
-        }
+        int typeChoice = promptParcelType();
+        String trackingNumber = promptTrackingNumber();
+        String receiverName = promptReceiverName();
 
         try {
-            String trackingNumber = promptString("Enter Tracking Number (e.g. ABC0001): ").trim().toUpperCase();
-
-            // Validate format
-            if (!Parcel.TRACKING_NUMBER_PATTERN.matcher(trackingNumber).matches()) {
-                throw new InvalidParcelException("Tracking number must start with 'ABC' followed by 4 digits (e.g., ABC0001)!");
-            }
-
-            // Check for duplicate tracking number
-            if (manager.hasTrackingNumber(trackingNumber)) {
-                throw new DuplicateTrackingNumberException(trackingNumber);
-            }
-
-            String receiverName = promptString("Enter Receiver Name: ").trim();
-            if (receiverName.isEmpty()) {
-                throw new InvalidParcelException("Receiver name cannot be empty!");
-            }
-
-            double weight = promptDouble("Enter Weight in kg (> 0): ");
-            if (weight <= 0) {
-                throw new InvalidParcelException("Weight must be greater than 0 kg!");
-            }
-
-            Parcel parcel = createParcelByType(typeChoice, trackingNumber, receiverName, weight);
-            if (parcel == null) {
-                return;
-            }
-
+            Parcel parcel = createParcelByType(typeChoice, trackingNumber, receiverName);
             manager.addParcel(parcel);
             System.out.printf("Parcel added successfully! Delivery fee: Php %.2f%n", parcel.calculateDeliveryFee());
-
-        } catch (InvalidParcelException | DuplicateTrackingNumberException e) {
+        } catch (DuplicateTrackingNumberException e) {
             System.out.println("Error: " + e.getMessage());
-        } catch (IllegalArgumentException e) {
-            System.out.println("Error: Invalid numeric input entered!");
+        } catch (InvalidParcelException | DeliveryServiceNotAllowedException e) {
+            System.out.println("Error: " + e.getMessage());
         } catch (Exception e) {
             System.out.println("Unexpected error: " + e.getMessage());
         }
     }
 
-    private static int parseParcelTypeChoice(String input) {
-        try {
-            int choice = Integer.parseInt(input.trim());
-            if (choice < 1 || choice > 3) {
-                System.out.println("Invalid parcel type choice! Returning to menu.");
-                return -1;
+    private static int promptParcelType() {
+        int choice = 0;
+        boolean valid = false;
+        while (!valid) {
+            System.out.println("Select Parcel Type:");
+            System.out.println(" 1. Document");
+            System.out.println(" 2. Box");
+            System.out.println(" 3. Fragile");
+            String input = promptString("Enter type choice (1-3): ");
+            try {
+                choice = Integer.parseInt(input.trim());
+                if (choice >= 1 && choice <= 3) {
+                    valid = true;
+                }
+                if (!valid) {
+                    System.out.println("Invalid parcel type choice! Please enter 1, 2, or 3.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input! Please enter a valid number (1-3).");
             }
-            return choice;
-        } catch (NumberFormatException e) {
-            System.out.println("Invalid input! Please enter a valid number.");
-            return -1;
         }
+        return choice;
     }
 
-    private static Parcel createParcelByType(int typeChoice, String trackingNumber, String receiverName, double weight)
+    private static String promptTrackingNumber() {
+        String tracking = "";
+        boolean valid = false;
+        while (!valid) {
+            tracking = promptString("Enter Tracking Number (e.g. ABC0001): ").trim().toUpperCase();
+            if (!Parcel.TRACKING_NUMBER_PATTERN.matcher(tracking).matches()) {
+                System.out.println("Error: Tracking number must start with 'ABC' followed by 4 digits (e.g., ABC0001)!");
+                continue;
+            }
+            if (manager.hasTrackingNumber(tracking)) {
+                System.out.println("Error: Tracking number '" + tracking + "' already exists in the system!");
+                continue;
+            }
+            valid = true;
+        }
+        return tracking;
+    }
+
+    private static String promptReceiverName() {
+        String name = "";
+        boolean valid = false;
+        while (!valid) {
+            name = promptString("Enter Receiver Name: ").trim();
+            if (name.isEmpty()) {
+                System.out.println("Error: Receiver name cannot be empty!");
+                continue;
+            }
+            valid = true;
+        }
+        return name;
+    }
+
+    private static double promptWeight(double maxWeight) {
+        double weight = 0.0;
+        boolean valid = false;
+        String maxWeightDisplay = (maxWeight == (long) maxWeight) ? String.format("%d", (long) maxWeight) : String.valueOf(maxWeight);
+        String promptMsg = "Enter Weight in kg (> 0 kg - " + maxWeightDisplay + " kg): ";
+
+        while (!valid) {
+            weight = promptDouble(promptMsg);
+            if (weight <= 0) {
+                System.out.println("Error: Weight must be greater than 0 kg!");
+                continue;
+            }
+            if (weight > maxWeight) {
+                System.out.println("Error: Weight cannot exceed " + maxWeightDisplay + " kg!");
+                continue;
+            }
+            valid = true;
+        }
+        return weight;
+    }
+
+    private static int promptPages() {
+        int pages = 0;
+        boolean valid = false;
+        while (!valid) {
+            pages = promptInt("Enter Number of Pages (1 - 100): ");
+            if (pages < DocumentParcel.MIN_PAGES || pages > DocumentParcel.MAX_PAGES) {
+                System.out.println("Error: Number of pages must be between " + DocumentParcel.MIN_PAGES + " and " + DocumentParcel.MAX_PAGES + "!");
+                continue;
+            }
+            valid = true;
+        }
+        return pages;
+    }
+
+    private static int promptDimension(String dimensionName) {
+        int val = 0;
+        boolean valid = false;
+        while (!valid) {
+            val = promptInt("Enter " + dimensionName + " in cm (> 0 cm): ");
+            if (val <= 0) {
+                System.out.println("Error: " + dimensionName + " must be greater than 0 cm!");
+                continue;
+            }
+            valid = true;
+        }
+        return val;
+    }
+
+    private static String promptHandlingNote() {
+        String note = "";
+        boolean valid = false;
+        while (!valid) {
+            note = promptString("Enter Handling Note (non-empty): ").trim();
+            if (note.isEmpty()) {
+                System.out.println("Error: Handling note cannot be empty!");
+                continue;
+            }
+            valid = true;
+        }
+        return note;
+    }
+
+    private static Parcel createParcelByType(int typeChoice, String trackingNumber, String receiverName)
             throws InvalidParcelException, DeliveryServiceNotAllowedException {
         switch (typeChoice) {
             case 1:
-                return buildDocumentParcel(trackingNumber, receiverName, weight);
+                return buildDocumentParcel(trackingNumber, receiverName);
             case 2:
-                return buildBoxParcel(trackingNumber, receiverName, weight);
+                return buildBoxParcel(trackingNumber, receiverName);
             case 3:
-                return buildFragileParcel(trackingNumber, receiverName, weight);
+                return buildFragileParcel(trackingNumber, receiverName);
             default:
-                System.out.println("Invalid parcel type choice!");
-                return null;
+                throw new InvalidParcelException("Invalid parcel type choice!");
         }
     }
 
-    private static DocumentParcel buildDocumentParcel(String trackingNumber, String receiverName, double weight)
+    private static DocumentParcel buildDocumentParcel(String trackingNumber, String receiverName)
             throws InvalidParcelException, DeliveryServiceNotAllowedException {
-        if (weight > DocumentParcel.MAX_WEIGHT) {
-            throw new InvalidParcelException("Document weight cannot exceed 0.5 kg! Current: " + weight + " kg");
-        }
-        int pages = promptInt("Enter Number of Pages (1 to 100): ");
-        if (pages < DocumentParcel.MIN_PAGES || pages > DocumentParcel.MAX_PAGES) {
-            throw new InvalidParcelException("Number of pages must be between 1 and 100! Provided: " + pages);
-        }
-
+        double weight = promptWeight(DocumentParcel.MAX_WEIGHT);
+        int pages = promptPages();
         DeliveryStrategy strategy = selectDeliveryServiceStrategy(weight);
         return new DocumentParcel(trackingNumber, receiverName, weight, strategy, pages);
     }
 
-    private static BoxParcel buildBoxParcel(String trackingNumber, String receiverName, double weight)
+    private static BoxParcel buildBoxParcel(String trackingNumber, String receiverName)
             throws InvalidParcelException, DeliveryServiceNotAllowedException {
-        if (weight > BoxParcel.MAX_WEIGHT) {
-            throw new InvalidParcelException("Box weight cannot exceed 50 kg! Current: " + weight + " kg");
-        }
-        int length = promptInt("Enter Length in cm (> 0): ");
-        int width = promptInt("Enter Width in cm (> 0): ");
-        int height = promptInt("Enter Height in cm (> 0): ");
-
-        if (length <= 0 || width <= 0 || height <= 0) {
-            throw new InvalidParcelException("Dimensions must be positive integers!");
-        }
+        double weight = promptWeight(BoxParcel.MAX_WEIGHT);
+        int length = promptDimension("Length");
+        int width = promptDimension("Width");
+        int height = promptDimension("Height");
 
         double volumetricWeight = ((double) length * width * height) / BoxParcel.VOLUMETRIC_DIVISOR;
         double chargeableWeight = Math.ceil(Math.max(weight, volumetricWeight));
@@ -190,23 +249,13 @@ public class Main {
         return new BoxParcel(trackingNumber, receiverName, weight, strategy, length, width, height);
     }
 
-    private static FragileParcel buildFragileParcel(String trackingNumber, String receiverName, double weight)
+    private static FragileParcel buildFragileParcel(String trackingNumber, String receiverName)
             throws InvalidParcelException, DeliveryServiceNotAllowedException {
-        if (weight > FragileParcel.MAX_FRAGILE_WEIGHT) {
-            throw new InvalidParcelException("Fragile parcel weight cannot exceed 30 kg! Current: " + weight + " kg");
-        }
-        int length = promptInt("Enter Length in cm (> 0): ");
-        int width = promptInt("Enter Width in cm (> 0): ");
-        int height = promptInt("Enter Height in cm (> 0): ");
-
-        if (length <= 0 || width <= 0 || height <= 0) {
-            throw new InvalidParcelException("Dimensions must be positive integers!");
-        }
-
-        String handlingNote = promptString("Enter Handling Note: ").trim();
-        if (handlingNote.isEmpty()) {
-            throw new InvalidParcelException("Handling note cannot be empty!");
-        }
+        double weight = promptWeight(FragileParcel.MAX_FRAGILE_WEIGHT);
+        int length = promptDimension("Length");
+        int width = promptDimension("Width");
+        int height = promptDimension("Height");
+        String handlingNote = promptHandlingNote();
 
         double volumetricWeight = ((double) length * width * height) / BoxParcel.VOLUMETRIC_DIVISOR;
         double chargeableWeight = Math.ceil(Math.max(weight, volumetricWeight));
@@ -217,7 +266,7 @@ public class Main {
 
     /**
      * Prompts the user to select a delivery service strategy.
-     * Uses a bounded condition flag without while(true) or nested if-else.
+     * Stays on prompt until a valid allowed service is chosen.
      */
     private static DeliveryStrategy selectDeliveryServiceStrategy(double chargeableWeight) {
         DeliveryStrategy selectedStrategy = null;
@@ -302,16 +351,16 @@ public class Main {
                 return;
             }
 
-            System.out.println("Current delivery service: " + parcel.getDeliveryStrategy().getServiceName());
+            String currentServiceName = parcel.getDeliveryStrategy().getServiceName();
+            System.out.println("Current delivery service: " + currentServiceName);
             System.out.printf("Current delivery fee: Php %.2f%n", parcel.calculateDeliveryFee());
-            System.out.println("Select New Delivery Service:");
-            System.out.println(" 1. Standard");
-            System.out.println(" 2. Express");
-            System.out.println(" 3. Same Day");
 
-            String choiceStr = promptString("Enter new service choice (1-3): ");
-            int option = Integer.parseInt(choiceStr.trim());
-            DeliveryServiceType newServiceType = DeliveryServiceType.fromOption(option);
+            DeliveryServiceType newServiceType = promptNewDeliveryService();
+
+            if (newServiceType.getDisplayName().equalsIgnoreCase(currentServiceName)) {
+                System.out.println("Delivery Service is Already " + currentServiceName + "!");
+                return;
+            }
 
             parcel.changeDeliveryService(newServiceType.getStrategy());
             System.out.printf("Delivery service changed! New fee: Php %.2f%n", parcel.calculateDeliveryFee());
@@ -321,9 +370,30 @@ public class Main {
         } catch (DeliveryServiceNotAllowedException e) {
             System.out.println(e.getMessage());
             System.out.println("(The parcel keeps its old service)");
-        } catch (IllegalArgumentException e) {
-            System.out.println("Invalid service option! The parcel keeps its old service.");
         }
+    }
+
+    private static DeliveryServiceType promptNewDeliveryService() {
+        DeliveryServiceType selectedType = null;
+        boolean valid = false;
+
+        while (!valid) {
+            System.out.println("Select New Delivery Service:");
+            System.out.println(" 1. Standard");
+            System.out.println(" 2. Express");
+            System.out.println(" 3. Same Day");
+            String choiceStr = promptString("Enter new service choice (1-3): ");
+
+            try {
+                int option = Integer.parseInt(choiceStr.trim());
+                selectedType = DeliveryServiceType.fromOption(option);
+                valid = true;
+            } catch (IllegalArgumentException e) {
+                System.out.println("Invalid service option! Please enter 1, 2, or 3.");
+            }
+        }
+
+        return selectedType;
     }
 
     // =========================================================================
