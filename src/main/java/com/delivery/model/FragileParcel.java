@@ -15,6 +15,7 @@ import com.delivery.strategy.DeliveryStrategy;
 public class FragileParcel extends BoxParcel {
     public static final double MAX_FRAGILE_WEIGHT = 30.0;
     public static final double HANDLING_FEE = 100.0;
+    public static final int MAX_HANDLING_NOTE_LENGTH = 100;
 
     private final String handlingNote;
 
@@ -26,6 +27,9 @@ public class FragileParcel extends BoxParcel {
 
         if (handlingNote == null || handlingNote.trim().isEmpty()) {
             throw new InvalidParcelException("Handling note cannot be empty!");
+        }
+        if (handlingNote.trim().length() > MAX_HANDLING_NOTE_LENGTH) {
+            throw new InvalidParcelException("Handling note cannot exceed " + MAX_HANDLING_NOTE_LENGTH + " characters!");
         }
 
         this.handlingNote = handlingNote.trim();

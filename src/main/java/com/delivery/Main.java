@@ -155,6 +155,10 @@ public class Main {
                 System.out.println("Error: Receiver name must not contain numbers!");
                 continue;
             }
+            if (!name.matches("^[a-zA-Z\\s.'-]+$") || !name.matches(".*[a-zA-Z].*")) {
+                System.out.println("Error: Receiver name must only contain valid name characters (letters, spaces, hyphens, apostrophes)!");
+                continue;
+            }
             valid = true;
         }
         return name;
@@ -199,9 +203,13 @@ public class Main {
         int val = 0;
         boolean valid = false;
         while (!valid) {
-            val = promptInt("Enter " + dimensionName + " in cm (> 0 cm): ");
+            val = promptInt("Enter " + dimensionName + " in cm (1 - " + BoxParcel.MAX_DIMENSION + " cm): ");
             if (val <= 0) {
                 System.out.println("Error: " + dimensionName + " must be greater than 0 cm!");
+                continue;
+            }
+            if (val > BoxParcel.MAX_DIMENSION) {
+                System.out.println("Error: " + dimensionName + " cannot exceed " + BoxParcel.MAX_DIMENSION + " cm!");
                 continue;
             }
             valid = true;
@@ -213,9 +221,13 @@ public class Main {
         String note = "";
         boolean valid = false;
         while (!valid) {
-            note = promptString("Enter Handling Note (non-empty): ").trim();
+            note = promptString("Enter Handling Note (non-empty, max " + FragileParcel.MAX_HANDLING_NOTE_LENGTH + " chars): ").trim();
             if (note.isEmpty()) {
                 System.out.println("Error: Handling note cannot be empty!");
+                continue;
+            }
+            if (note.length() > FragileParcel.MAX_HANDLING_NOTE_LENGTH) {
+                System.out.println("Error: Handling note cannot exceed " + FragileParcel.MAX_HANDLING_NOTE_LENGTH + " characters! (Current: " + note.length() + ")");
                 continue;
             }
             valid = true;

@@ -315,6 +315,34 @@ public class ParcelDeliverySystemTest {
             } catch (InvalidParcelException e) {
                 assertTrue("Receiver name containing numbers threw InvalidParcelException as expected", true);
             }
+
+            // Name with invalid symbols - should fail with InvalidParcelException
+            try {
+                new BoxParcel("ABC0017", "John@Doe#", 2.0, new StandardDeliveryStrategy(), 10, 10, 10);
+                assertTrue("Receiver name containing symbols should throw InvalidParcelException", false);
+            } catch (InvalidParcelException e) {
+                assertTrue("Receiver name containing symbols threw InvalidParcelException as expected", true);
+            }
+
+            // Dimensions > 300 cm - should fail with InvalidParcelException
+            try {
+                new BoxParcel("ABC0018", "Valid Name", 2.0, new StandardDeliveryStrategy(), 301, 10, 10);
+                assertTrue("Dimension exceeding 300 cm should throw InvalidParcelException", false);
+            } catch (InvalidParcelException e) {
+                assertTrue("Dimension exceeding 300 cm threw InvalidParcelException as expected", true);
+            }
+
+            // Handling note > 100 chars - should fail with InvalidParcelException
+            try {
+                StringBuilder longNote = new StringBuilder();
+                for (int i = 0; i < 101; i++) {
+                    longNote.append("A");
+                }
+                new FragileParcel("ABC0019", "Valid Name", 2.0, new StandardDeliveryStrategy(), 10, 10, 10, longNote.toString());
+                assertTrue("Handling note exceeding 100 chars should throw InvalidParcelException", false);
+            } catch (InvalidParcelException e) {
+                assertTrue("Handling note exceeding 100 chars threw InvalidParcelException as expected", true);
+            }
         } catch (Exception e) {
             assertTrue("Receiver name test unexpected exception: " + e.getMessage(), false);
         }

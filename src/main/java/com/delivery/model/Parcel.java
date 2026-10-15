@@ -51,13 +51,17 @@ public abstract class Parcel {
         if (receiverName == null || receiverName.trim().isEmpty()) {
             throw new InvalidParcelException("Receiver name cannot be empty!");
         }
-        if (receiverName.trim().length() > MAX_RECEIVER_NAME_LENGTH) {
+        String trimmed = receiverName.trim();
+        if (trimmed.length() > MAX_RECEIVER_NAME_LENGTH) {
             throw new InvalidParcelException("Receiver name cannot exceed " + MAX_RECEIVER_NAME_LENGTH + " characters!");
         }
-        if (receiverName.matches(".*\\d.*")) {
+        if (trimmed.matches(".*\\d.*")) {
             throw new InvalidParcelException("Receiver name must not contain numbers!");
         }
-        return receiverName.trim();
+        if (!trimmed.matches("^[a-zA-Z\\s.'-]+$") || !trimmed.matches(".*[a-zA-Z].*")) {
+            throw new InvalidParcelException("Receiver name must only contain valid name characters (letters, spaces, hyphens, apostrophes)!");
+        }
+        return trimmed;
     }
 
     private static double validateWeight(double weight) throws InvalidParcelException {
