@@ -45,9 +45,14 @@ public abstract class Parcel {
         return trackingNumber.trim();
     }
 
+    public static final int MAX_RECEIVER_NAME_LENGTH = 30;
+
     private static String validateReceiverName(String receiverName) throws InvalidParcelException {
         if (receiverName == null || receiverName.trim().isEmpty()) {
             throw new InvalidParcelException("Receiver name cannot be empty!");
+        }
+        if (receiverName.trim().length() > MAX_RECEIVER_NAME_LENGTH) {
+            throw new InvalidParcelException("Receiver name cannot exceed " + MAX_RECEIVER_NAME_LENGTH + " characters!");
         }
         return receiverName.trim();
     }

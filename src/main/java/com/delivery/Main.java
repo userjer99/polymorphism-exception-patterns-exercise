@@ -142,9 +142,13 @@ public class Main {
         String name = "";
         boolean valid = false;
         while (!valid) {
-            name = promptString("Enter Receiver Name: ").trim();
+            name = promptString("Enter Receiver Name (max " + Parcel.MAX_RECEIVER_NAME_LENGTH + " chars): ").trim();
             if (name.isEmpty()) {
                 System.out.println("Error: Receiver name cannot be empty!");
+                continue;
+            }
+            if (name.length() > Parcel.MAX_RECEIVER_NAME_LENGTH) {
+                System.out.println("Error: Receiver name cannot exceed " + Parcel.MAX_RECEIVER_NAME_LENGTH + " characters! (Current: " + name.length() + ")");
                 continue;
             }
             valid = true;
@@ -312,17 +316,17 @@ public class Main {
             return;
         }
 
-        String border = "+------------+----------+----------------------+-------------+-----------------+-------------+----------------+-----------+";
+        String border = "+------------+----------+--------------------------------+-------------+-----------------+-------------+----------------+-----------+";
         System.out.println(border);
-        System.out.printf("| %-10s | %-8s | %-20s | %-11s | %-15s | %-11s | %-14s | %-9s |%n",
+        System.out.printf("| %-10s | %-8s | %-30s | %-11s | %-15s | %-11s | %-14s | %-9s |%n",
                 "Tracking", "Type", "Receiver", "Weight (kg)", "Chargeable (kg)", "Service", "Fee (Php)", "Status");
         System.out.println(border);
 
         for (Parcel p : parcels) {
-            System.out.printf("| %-10s | %-8s | %-20s | %11.2f | %15.2f | %-11s | %14.2f | %-9s |%n",
+            System.out.printf("| %-10s | %-8s | %-30s | %11.2f | %15.2f | %-11s | %14.2f | %-9s |%n",
                     p.getTrackingNumber(),
                     p.getParcelType(),
-                    truncate(p.getReceiverName(), 20),
+                    truncate(p.getReceiverName(), 30),
                     p.getWeight(),
                     p.getChargeableWeight(),
                     p.getDeliveryStrategy().getServiceName(),
