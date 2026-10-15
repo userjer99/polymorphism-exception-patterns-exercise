@@ -287,6 +287,11 @@ public class Main {
     // =========================================================================
     private static void handleChangeDeliveryService() {
         System.out.println("--- Change Delivery Service ---");
+        if (manager.getParcelCount() == 0) {
+            System.out.println("No parcels registered in the system.");
+            return;
+        }
+
         String trackingNumber = promptString("Enter Tracking Number: ").trim().toUpperCase();
 
         try {
@@ -326,6 +331,11 @@ public class Main {
     // =========================================================================
     private static void handleMarkAsDelivered() {
         System.out.println("--- Mark Parcel as Delivered ---");
+        if (manager.getParcelCount() == 0) {
+            System.out.println("No parcels registered in the system.");
+            return;
+        }
+
         String trackingNumber = promptString("Enter Tracking Number: ").trim().toUpperCase();
 
         try {
