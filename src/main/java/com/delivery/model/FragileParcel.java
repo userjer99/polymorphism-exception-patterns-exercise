@@ -24,19 +24,20 @@ public class FragileParcel extends BoxParcel {
             throws InvalidParcelException, DeliveryServiceNotAllowedException {
         super(trackingNumber, receiverName, weight, deliveryStrategy, length, width, height);
 
-        if (weight > MAX_FRAGILE_WEIGHT) {
-            throw new InvalidParcelException("Fragile parcel weight cannot exceed 30 kg! Provided: " + weight + " kg");
-        }
         if (handlingNote == null || handlingNote.trim().isEmpty()) {
             throw new InvalidParcelException("Handling note cannot be empty!");
         }
 
         this.handlingNote = handlingNote.trim();
-        validateServiceEligibility();
     }
 
     public String getHandlingNote() {
         return handlingNote;
+    }
+
+    @Override
+    protected double getMaxWeight() {
+        return MAX_FRAGILE_WEIGHT;
     }
 
     @Override

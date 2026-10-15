@@ -26,8 +26,8 @@ public class BoxParcel extends Parcel {
             throws InvalidParcelException, DeliveryServiceNotAllowedException {
         super(trackingNumber, receiverName, weight, deliveryStrategy);
 
-        if (weight > MAX_WEIGHT) {
-            throw new InvalidParcelException("Box weight cannot exceed 50 kg! Provided: " + weight + " kg");
+        if (weight > getMaxWeight()) {
+            throw new InvalidParcelException(getParcelType() + " weight cannot exceed " + getMaxWeight() + " kg! Provided: " + weight + " kg");
         }
         if (length <= 0 || width <= 0 || height <= 0) {
             throw new InvalidParcelException("Dimensions must be positive integers! (Length, width, and height > 0)");
@@ -50,6 +50,10 @@ public class BoxParcel extends Parcel {
 
     public int getHeight() {
         return height;
+    }
+
+    protected double getMaxWeight() {
+        return MAX_WEIGHT;
     }
 
     public double getVolumetricWeight() {
