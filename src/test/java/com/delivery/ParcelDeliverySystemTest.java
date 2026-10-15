@@ -294,18 +294,26 @@ public class ParcelDeliverySystemTest {
 
     private static void testReceiverNameLengthRestriction() {
         try {
-            // Exactly 30 characters - should succeed
-            String name30 = "123456789012345678901234567890";
+            // Exactly 30 alphabetic characters - should succeed
+            String name30 = "ABCDEFGHIJKLMNOPQRSTUVWXYZABCD";
             BoxParcel p1 = new BoxParcel("ABC0014", name30, 2.0, new StandardDeliveryStrategy(), 10, 10, 10);
             assertTrue("Receiver name of exactly 30 characters is accepted", name30.equals(p1.getReceiverName()));
 
             // 31 characters - should fail with InvalidParcelException
-            String name31 = "1234567890123456789012345678901";
+            String name31 = "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDE";
             try {
                 new BoxParcel("ABC0015", name31, 2.0, new StandardDeliveryStrategy(), 10, 10, 10);
                 assertTrue("Receiver name exceeding 30 characters should throw InvalidParcelException", false);
             } catch (InvalidParcelException e) {
                 assertTrue("Receiver name exceeding 30 characters threw InvalidParcelException as expected", true);
+            }
+
+            // Name with digits/numbers - should fail with InvalidParcelException
+            try {
+                new BoxParcel("ABC0016", "John Doe 123", 2.0, new StandardDeliveryStrategy(), 10, 10, 10);
+                assertTrue("Receiver name containing numbers should throw InvalidParcelException", false);
+            } catch (InvalidParcelException e) {
+                assertTrue("Receiver name containing numbers threw InvalidParcelException as expected", true);
             }
         } catch (Exception e) {
             assertTrue("Receiver name test unexpected exception: " + e.getMessage(), false);

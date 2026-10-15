@@ -54,6 +54,9 @@ public abstract class Parcel {
         if (receiverName.trim().length() > MAX_RECEIVER_NAME_LENGTH) {
             throw new InvalidParcelException("Receiver name cannot exceed " + MAX_RECEIVER_NAME_LENGTH + " characters!");
         }
+        if (receiverName.matches(".*\\d.*")) {
+            throw new InvalidParcelException("Receiver name must not contain numbers!");
+        }
         return receiverName.trim();
     }
 

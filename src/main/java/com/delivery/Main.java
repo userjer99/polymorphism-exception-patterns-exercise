@@ -142,13 +142,17 @@ public class Main {
         String name = "";
         boolean valid = false;
         while (!valid) {
-            name = promptString("Enter Receiver Name (max " + Parcel.MAX_RECEIVER_NAME_LENGTH + " chars): ").trim();
+            name = promptString("Enter Receiver Name (max " + Parcel.MAX_RECEIVER_NAME_LENGTH + " chars, no numbers): ").trim();
             if (name.isEmpty()) {
                 System.out.println("Error: Receiver name cannot be empty!");
                 continue;
             }
             if (name.length() > Parcel.MAX_RECEIVER_NAME_LENGTH) {
                 System.out.println("Error: Receiver name cannot exceed " + Parcel.MAX_RECEIVER_NAME_LENGTH + " characters! (Current: " + name.length() + ")");
+                continue;
+            }
+            if (name.matches(".*\\d.*")) {
+                System.out.println("Error: Receiver name must not contain numbers!");
                 continue;
             }
             valid = true;
